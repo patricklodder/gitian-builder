@@ -196,11 +196,17 @@ if [ $DOCKER = "1" ]; then
     base_image="$DISTRO:$SUITE"
   fi
 
+  remove_esm="# NOOP"
+  if [ $DISTRO = "ubuntu" -a $SUITE = "trusty" ]; then
+    remove_esm="RUN rm /etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list"
+  fi
+
   # Generate the dockerfile
   cat << EOF > $OUT.Dockerfile
 FROM $base_image
 
 ENV DEBIAN_FRONTEND=noninteractive
+$remove_esm
 RUN echo 'Acquire::http { Proxy "$MIRROR_BASE"; };' > /etc/apt/apt.conf.d/50cacher
 RUN apt-get update && apt-get --no-install-recommends -y install $addpkg
 
@@ -301,4 +307,3 @@ else
   rm -rf $OUT
   # bootstrap-fixup is done on first boot
 fi
-
